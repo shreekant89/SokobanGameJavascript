@@ -14,7 +14,7 @@
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(19, 30px);
+      grid-template-columns: repeat(7, 30px);
       gap: 2px;
     }
 
@@ -50,26 +50,21 @@
 <script>
   const board = document.getElementById('board');
   const player = { row: 0, col: 0 };
+  var oldPlayer = { row: 0, col: 0 };
+  var box = { row: 2, col: 1 };
+  var newBoxPosition={ row: 2, col: 1 }
+  var targets=[]
   const tileMap = {
-    width: 19,
-    height: 16,
+    width: 7,
+    height: 7,
     mapGrid: [
-      [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-      [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-      [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-      [" ", " ", " ", " ", "W", "W", "W", "W", "W", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-      [" ", " ", " ", " ", "W", " ", " ", " ", "W", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-      [" ", " ", " ", " ", "W", "B", " ", " ", "W", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-      [" ", " ", "W", "W", "W", " ", " ", "B", "W", "W", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-      [" ", " ", "W", " ", " ", "B", " ", "B", " ", "W", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-      ["W", "W", "W", " ", "W", " ", "W", "W", " ", "W", " ", " ", " ", "W", "W", "W", "W", "W", "W"],
-      ["W", " ", " ", " ", "W", " ", "W", "W", " ", "W", "W", "W", "W", "W", " ", " ", "G", "G", "W"],
-      ["W", " ", "B", " ", " ", "B", " ", " ", " ", " ", " ", " ", " ", " ", " ", "G", "G", "W"],
-      ["W", "W", "W", "W", "W", " ", "W", "W", "W", " ", "W", "P", "W", "W", " ", " ", "G", "G", "W"],
-      [" ", " ", " ", " ", "W", " ", " ", " ", " ", " ", "W", "W", "W", "W", "W", "W", "W", "W", "W"],
-      [" ", " ", " ", " ", "W", "W", "W", "W", "W", "W", "W", " ", " ", " ", " ", " ", " ", " ", " "],
-      [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-      [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
+      [" "," ",  " ", " ", " ", " ", " ", " "],
+      [" "," ",  "B", " ", " ", " ", " ", " "],
+      [" "," ",  " ", " ", " ", " ", " ", " "],
+      [" "," ",  "W", " ", "W", "W", "W", "W"],
+      [" "," ",  "W", " ", " ", "G", "G", "W"],
+      [" "," ",  " ", " ", " ", "G", "G", "W"],
+      [" "," ",  "W", "P", " ", "G", "G", "W"],
     ],
   };
 
@@ -85,10 +80,68 @@
             tile.classList.add("player");
             player.col=col;
             player.row=row;
+
             break;
           case "B":
             tile.textContent = "📦"; // Box emoji
             tile.classList.add("box");
+            box.col=col;
+            box.row=row;
+            break;
+          case "G":
+            tile.textContent = "🎯"; // Target emoji
+            tile.classList.add("target");
+            var temp = { row: row, col: col };
+            targets.push(temp);
+            break;
+          case "W":
+            tile.textContent = "W"; // Target emoji
+            tile.classList.add("target");
+            break;
+        }
+
+        board.appendChild(tile);
+      }
+    }
+  }
+
+  function buildMapOnMove() {
+    for (let row = 0; row < tileMap.height; row++) {
+      for (let col = 0; col < tileMap.width; col++) {
+        const tile = document.createElement("div");
+        tile.classList.add("tile");
+
+        if(oldPlayer.col==col && oldPlayer.row==row)
+        {          
+          if(tileMap.mapGrid[row][col]=="P"){
+                tileMap.mapGrid[row][col]=" ";
+          }
+        }
+        if(player.col==col && player.row==row)
+        {          
+          tileMap.mapGrid[row][col]="P"
+        }
+
+        if(box.col==col && box.row==row)
+        {          
+          if(tileMap.mapGrid[row][col]=="B"){
+                tileMap.mapGrid[row][col]=" ";
+          }
+        }
+        if(newBoxPosition.col==col && newBoxPosition.row==row)
+        {          
+          tileMap.mapGrid[row][col]="B"
+        }
+
+        switch (tileMap.mapGrid[row][col]) {
+          case "P":
+            tile.textContent = "👨‍🚀"; // Player emoji
+            tile.classList.add("player");
+            break;
+          case "B":
+            tile.textContent = "📦"; // Box emoji
+            tile.classList.add("box");
+
             break;
           case "G":
             tile.textContent = "🎯"; // Target emoji
@@ -109,7 +162,7 @@
     const tiles = document.querySelectorAll('.tile');
     tiles.forEach(tile => tile.remove());
 
-    buildMap();
+    buildMapOnMove();
   }
 
   function handleKeyPress(event) {
@@ -131,7 +184,8 @@
 
   function movePlayer(direction) {
     const newPosition = { row: player.row, col: player.col };
-
+    oldPlayer={ row: player.row, col: player.col }
+    newBoxPosition = { ...box };
     switch (direction) {
       case "up":
         newPosition.row -= 1;
@@ -149,9 +203,45 @@
 
     // If the new position is a valid move for the player
     if (isValidMove(newPosition)) {
+
+      if (newPosition.row === box.row && newPosition.col === box.col) {
+        newBoxPosition.row = box.row + (newPosition.row - player.row);
+        newBoxPosition.col = box.col + (newPosition.col - player.col);
+
+        // If the box's new position is valid, update the box position
+        if (isValidMove(newBoxPosition)) {
+          box.row = newBoxPosition.row;
+          box.col = newBoxPosition.col;
+
+          // Check if the box is at the goal
+          /*if (box.row === target.row && box.col === target.col) {
+            alert("You won!");
+            resetGame();
+            return;
+          } */
+
+          var isMatch = targets.some(function(target) {
+            return target.row === box.row && target.col === box.col;
+          });
+          
+          if (isMatch) {
+            alert(`There is a target at row ${box.row}, column ${box.col}.`);
+          } 
+          /* else {
+            alert(`No target at row ${box.row}, column ${box.col}.`);
+          } */
+
+
+        } else {
+          // If the box cannot be moved, revert the player's position
+          return;
+        }
+      }
+
+
+
       player.row = newPosition.row;
       player.col = newPosition.col;
-
       updateMap();
     }
   }
