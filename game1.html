@@ -14,7 +14,7 @@
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(7, 30px);
+      grid-template-columns: repeat(8, 30px);
       gap: 2px;
     }
 
@@ -47,28 +47,49 @@
 
 <div class="grid" id="board"></div>
 
+<script src="script.js"></script>
 <script>
+
+
   const board = document.getElementById('board');
-  const player = { row: 0, col: 0 };
-  var oldPlayer = { row: 0, col: 0 };
-  var box = { row: 2, col: 1 };
-  var newBoxPosition={ row: 2, col: 1 }
-  var targets=[]
+  const player = { };
+  var oldPlayer = {  };
+
+  var box = {  };
+  var newBoxPosition={ };
+
+  var targets=[];
+  var oldTarget=[];
   const tileMap = {
-    width: 7,
+    width: 8,
     height: 7,
     mapGrid: [
       [" "," ",  " ", " ", " ", " ", " ", " "],
-      [" "," ",  "B", " ", " ", " ", " ", " "],
+      [" "," ",  "W", " ", " ", " ", " ", " "],
       [" "," ",  " ", " ", " ", " ", " ", " "],
       [" "," ",  "W", " ", "W", "W", "W", "W"],
-      [" "," ",  "W", " ", " ", "G", "G", "W"],
+      [" "," ",  "B", " ", " ", "G", "G", "W"],
+      [" "," ",  " ", " ", " ", "G", "G", "W"],
+      [" "," ",  "W", "P", " ", "G", "G", "W"],
+    ],
+  };
+
+  const tileMapOld = {
+    width: 8,
+    height: 7,
+    mapGrid: [
+      [" "," ",  " ", " ", " ", " ", " ", " "],
+      [" "," ",  "W", " ", " ", " ", " ", " "],
+      [" "," ",  " ", " ", " ", " ", " ", " "],
+      [" "," ",  "W", " ", "W", "W", "W", "W"],
+      [" "," ",  "B", " ", " ", "G", "G", "W"],
       [" "," ",  " ", " ", " ", "G", "G", "W"],
       [" "," ",  "W", "P", " ", "G", "G", "W"],
     ],
   };
 
   function buildMap() {
+
     for (let row = 0; row < tileMap.height; row++) {
       for (let col = 0; col < tileMap.width; col++) {
         const tile = document.createElement("div");
@@ -115,10 +136,14 @@
         {          
           if(tileMap.mapGrid[row][col]=="P"){
                 tileMap.mapGrid[row][col]=" ";
+          if(tileMapOld.mapGrid[row][col]=="G"&& tileMap.mapGrid[row][col]==" ")
+                tileMap.mapGrid[row][col]="G";   
+
           }
         }
         if(player.col==col && player.row==row)
-        {          
+        {      
+                   
           tileMap.mapGrid[row][col]="P"
         }
 
@@ -256,6 +281,7 @@
 
   document.addEventListener("keydown", handleKeyPress);
   buildMap();
+
 </script>
 
 </body>
